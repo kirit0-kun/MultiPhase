@@ -1,0 +1,70 @@
+plugins {
+    id 'java'
+    id 'org.openjfx.javafxplugin' version '0.0.10'
+    id 'org.beryx.jlink' version '2.24.0'
+}
+
+group 'com.flowapp'
+version '1.0-SNAPSHOT'
+mainClassName = "com.flowapp.MultiPhase.Launcher"
+
+startScripts {
+    classpath += files("$buildDir/resources/main")
+}
+
+application {
+    mainModule = 'com.flowapp.MultiPhase'
+}
+
+java {
+    modularity.inferModulePath = true
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:20.1.0'
+    implementation 'org.jetbrains:annotations:20.1.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    compile files('../DateTimeRCryptor/build/libs/DateTimeRCryptor-1.0-SNAPSHOT.jar')
+    implementation 'com.google.code.gson:gson:2.8.7'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+javafx {
+    version = '15'
+    //modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.base']
+}
+
+jlink {
+    launcher{
+        name = 'Multi Phase'
+    }
+    jpackage {
+        appVersion = 1
+        installerOutputDir = file("$buildDir/installers")
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'com.flowapp.MultiPhase.Launcher'
+        )
+    }
+}
+
+apply plugin: 'idea'
+
+idea {
+    module {
+        inheritOutputDirs = true
+    }
+}
