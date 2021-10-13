@@ -4,6 +4,7 @@ import com.flowapp.MultiPhase.Models.MultiPhaseResult;
 import com.flowapp.MultiPhase.MultiPhase;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -181,60 +182,41 @@ public class MainWindowController implements Initializable {
         final Float endPressurePSIA = getFloat(endPressureTextField.getText());
         final float lengthFt = getFloat(lengthTextField.getText());
 
-        final var task = new Task<MultiPhaseResult>() {
-            Alert loadingDialog;
-
+        final var task = new Service<MultiPhaseResult>() {
             @Override
-            protected MultiPhaseResult call() throws Exception {
-                final var multiPhase = new MultiPhase();
-                return multiPhase.multiPhase(liquidFlowRateSCFDay
-                        ,liquidViscosityCP,liquidDensityLBCF,liquidSpGr,
-                        iDIN,avgTC,roughness,gasFlowRateSCFDay,
-                        gasViscosityCP,gasDensityLBCF, gasSpGr,maxPressurePSIA, endPressurePSIA,lengthFt);
-            }
-
-            @Override
-            public void run() {
-                loadingDialog = createProgressAlert((Stage) iDTextField.getScene().getWindow(), this);
-                super.run();
-                loadingDialog.show();
-            }
-
-            protected void closeDialog() {
-                if (loadingDialog != null) {
-                    loadingDialog.close();
-                }
-            }
-
-            @Override
-            protected void succeeded() {
-                super.succeeded();
-                closeDialog();
-            }
-
-            @Override
-            protected void failed() {
-                super.failed();
-                closeDialog();
-            }
-
-            @Override
-            protected void cancelled() {
-                super.cancelled();
-                closeDialog();
+            protected Task<MultiPhaseResult> createTask() {
+                return new Task<>() {
+                    @Override
+                    protected MultiPhaseResult call() {
+                        final var multiPhase = new MultiPhase();
+                        return multiPhase.multiPhase(liquidFlowRateSCFDay
+                                , liquidViscosityCP, liquidDensityLBCF, liquidSpGr,
+                                iDIN, avgTC, roughness, gasFlowRateSCFDay,
+                                gasViscosityCP, gasDensityLBCF, gasSpGr, maxPressurePSIA, endPressurePSIA, lengthFt);
+                    }
+                };
             }
         };
+        final var loadingDialog = createProgressAlert((Stage) iDTextField.getScene().getWindow(), task);
+        task.setOnRunning(e -> {
+            loadingDialog.show();
+        });
         task.setOnSucceeded(e -> {
             final var result = task.getValue();
             setAnswer(result.getSteps());
+            loadingDialog.close();
         });
         task.setOnFailed(e -> {
             final var error = e.getSource().getException();
             final var errorDialog = createErrorDialog(getStage(), error);
             errorDialog.show();
             setAnswer(error.getMessage());
+            loadingDialog.close();
         });
-        task.run();
+        task.setOnCancelled(e -> {
+            loadingDialog.close();
+        });
+        task.restart();
     }
 
     Float getFloat(String value) {
@@ -265,7 +247,7 @@ public class MainWindowController implements Initializable {
         return alert;
     }
 
-    Alert createProgressAlert(Stage owner, Task<?> task) {
+    Alert createProgressAlert(Stage owner, Service<?> task) {
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.initOwner(owner);
         alert.titleProperty().bind(task.titleProperty());
@@ -274,6 +256,7 @@ public class MainWindowController implements Initializable {
         ProgressIndicator pIndicator = new ProgressIndicator();
         pIndicator.progressProperty().bind(task.progressProperty());
         alert.setGraphic(pIndicator);
+        alert.setHeaderText("Loading...");
 
         alert.getDialogPane().getButtonTypes().add(ButtonType.OK);
         alert.getDialogPane().lookupButton(ButtonType.OK)
