@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.openjfx.javafxplugin' version '0.0.10'
-    id 'org.beryx.jlink' version '2.24.0'
+    id 'org.openjfx.javafxplugin' version '0.0.12'
+    id 'org.beryx.jlink' version '2.24.4'
 }
 
 group 'com.flowapp'
@@ -29,7 +29,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:20.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    compile files('../DateTimeRCryptor/build/libs/DateTimeRCryptor-1.0-SNAPSHOT.jar')
+    implementation files('../DateTimeRCryptor/build/libs/DateTimeRCryptor-1.0-SNAPSHOT.jar')
     implementation 'com.google.code.gson:gson:2.8.7'
 }
 
@@ -38,8 +38,8 @@ test {
 }
 
 javafx {
-    version = '15'
-    //modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.base']
+    version = '17'
+    modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.base']
 }
 
 jlink {
@@ -55,8 +55,8 @@ jlink {
 jar {
     manifest {
         attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'com.flowapp.MultiPhase.Launcher'
+                'Class-Path': configurations.collect { it.getName() }.join(' '),
+                'Main-Class': 'com.flowapp.RefiningProject.Launcher'
         )
     }
 }
