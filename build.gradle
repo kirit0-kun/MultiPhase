@@ -51,7 +51,7 @@ jlink {
         name = 'Multi Phase'
     }
     jpackage {
-        appVersion = 1
+        appVersion = '1.0.0'
         installerOutputDir = file("$buildDir/installers")
     }
 }
