@@ -1,4 +1,4 @@
-module MultiPhase {
+module com.flowapp.MultiPhase {
     requires javafx.fxml;
     requires javafx.controls;
     requires javafx.graphics;
